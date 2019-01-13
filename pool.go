@@ -2,24 +2,29 @@ package pool
 
 import (
 	"fmt"
+	"net/http"
 	"reflect"
 	"sync"
 	"time"
 )
 
+var PoolCreateExsample = InitPool(1, 1, 10, func() interface{} {
+	return &http.Request{} //any http client you want use
+}, time.Minute)
+
 type HttpConnPool struct {
-	m *sync.RWMutex
+	m         *sync.RWMutex
 	recycling time.Duration
 	max,
 	idleMax,
 	inuse,
 	free int
 	insfunc insFun
-	pool    []*HttpConn
+	pool    []*clientConn
 }
 
 type insFun func() interface{}
-type HttpConn struct {
+type clientConn struct {
 	Agent  interface{}
 	enable bool
 }
@@ -33,7 +38,8 @@ func (p *HttpConnPool) Countreal() int {
 	return len(p.pool)
 
 }
-func (p *HttpConnPool) InitPool(l, i, max int, fun insFun, du time.Duration) {
+func InitPool(l, i, max int, fun insFun, du time.Duration) *HttpConnPool {
+	p := new(HttpConnPool)
 	p.m = new(sync.RWMutex)
 	p.m.Lock()
 	defer p.m.Unlock()
@@ -42,11 +48,11 @@ func (p *HttpConnPool) InitPool(l, i, max int, fun insFun, du time.Duration) {
 		panic("the InsFun only accept the pointer of the client instance!!")
 	}
 	p.insfunc = fun
-	p.recycling=du
+	p.recycling = du
 	//fmt.Println("pool init ok")
 	for ; l > 0; l-- {
 		fmt.Println("inti pool loop")
-		p.pool = append(p.pool, &HttpConn{p.insfunc(), true})
+		p.pool = append(p.pool, &clientConn{p.insfunc(), true})
 	}
 	p.free = l
 	p.max = max
@@ -70,6 +76,7 @@ func (p *HttpConnPool) InitPool(l, i, max int, fun insFun, du time.Duration) {
 		}
 	}()
 	fmt.Println("pool init ok")
+	return p
 }
 
 func (p *HttpConnPool) remove(i int) {
@@ -77,7 +84,7 @@ func (p *HttpConnPool) remove(i int) {
 	p.free--
 }
 
-func (p *HttpConnPool) Get() (conn *HttpConn, err error) {
+func (p *HttpConnPool) Get() (conn *clientConn, err error) {
 	p.m.Lock()
 	defer p.m.Unlock()
 	if p.free > 0 {
@@ -94,7 +101,7 @@ func (p *HttpConnPool) Get() (conn *HttpConn, err error) {
 	}
 
 	if p.inuse < p.max {
-		conn = &HttpConn{p.insfunc(), false}
+		conn = &clientConn{p.insfunc(), false}
 		p.pool = append(p.pool, conn)
 		p.inuse++
 		return
@@ -104,7 +111,7 @@ func (p *HttpConnPool) Get() (conn *HttpConn, err error) {
 
 }
 
-func (p *HttpConnPool) Ret(conn *HttpConn) {
+func (p *HttpConnPool) Ret(conn *clientConn) {
 	p.m.Lock()
 	defer p.m.Unlock()
 	conn.enable = true
@@ -112,7 +119,7 @@ func (p *HttpConnPool) Ret(conn *HttpConn) {
 	p.inuse--
 
 }
-func (c *HttpConn) Ret(P *HttpConnPool) {
+func (c *clientConn) Ret(P *HttpConnPool) {
 	P.m.Lock()
 	defer P.m.Unlock()
 	c.enable = true
