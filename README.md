@@ -1,12 +1,15 @@
 # easypool
 
 
-#features:
+## features:
 
 **1.并发安全  concurrent safe**
+
 **2.自动回收  auto recycle the free clients**
 
 
+
+## 用例
 
 **初始化  初始client数量 ， 最小闲置数量 ，最大数量 ，client 实例创建的回调函数， 回收间隔**
 
