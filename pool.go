@@ -9,6 +9,7 @@ import (
 
 type HttpConnPool struct {
 	m *sync.RWMutex
+	recycling time.Duration
 	max,
 	idleMax,
 	inuse,
@@ -24,7 +25,7 @@ type HttpConn struct {
 }
 
 func (p *HttpConnPool) String() string {
-	return fmt.Sprintf("free:%v, inuse:%v", p.free, p.inuse)
+	return fmt.Sprintf("free:%v, inuse:%v  recycling duration:%v", p.free, p.inuse, p.recycling)
 }
 func (p *HttpConnPool) Countreal() int {
 	p.m.RLock()
@@ -41,6 +42,7 @@ func (p *HttpConnPool) InitPool(l, i, max int, fun insFun, du time.Duration) {
 		panic("the InsFun only accept the pointer of the client instance!!")
 	}
 	p.insfunc = fun
+	p.recycling=du
 	//fmt.Println("pool init ok")
 	for ; l > 0; l-- {
 		fmt.Println("inti pool loop")
