@@ -1,16 +1,20 @@
 # easypool
 
 
-features:
-并发安全  concurrent safe
-自动回收  auto recycle the free clients
+#features:
 
-//初始化  初始client数量 ， 最小闲置数量 ，最大数量 ，client 实例创建的回调函数， 回收间隔
+**1.并发安全  concurrent safe**
+**2.自动回收  auto recycle the free clients**
 
+
+
+**初始化  初始client数量 ， 最小闲置数量 ，最大数量 ，client 实例创建的回调函数， 回收间隔**
+
+```
 ReqHttpConnP=pool.InitPool(1,80,300, func() interface{} {return gorequest.New()},time.Second*10)  
 
 
- //查看池子 使用情况 以及回收间隔
+ **查看池子 使用情况 以及回收间隔**
  
 func  Test_sendrewardConcurrent(t *testing.T)  {
 
@@ -33,11 +37,13 @@ func  Test_sendrewardConcurrent(t *testing.T)  {
 	c:=time.NewTimer(time.Minute*2)
 	<-c.C
 }
+```
 
 
+**取出以后需要强制转换成你放进去的类型**
 
-//取出以后需要强制转换成你放进去的类型
 
+```
 func  Test_sendreward(t *testing.T)  {
 
 	ret:=new(RspPhp)
@@ -74,3 +80,4 @@ func  Test_sendreward(t *testing.T)  {
 
 
 }
+```
