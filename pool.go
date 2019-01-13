@@ -50,7 +50,7 @@ func InitPool(l, i, max int, fun insFun, du time.Duration) *HttpConnPool {
 	p.recycling = du
 	//fmt.Println("pool init ok")
 	for ; l > 0; l-- {
-		fmt.Println("inti pool loop")
+		//fmt.Println("inti pool loop")
 		p.pool = append(p.pool, &clientConn{p.insfunc(), true})
 	}
 	p.free = l
