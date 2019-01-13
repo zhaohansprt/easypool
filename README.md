@@ -28,6 +28,7 @@ func  Test_sendrewardConcurrent(t *testing.T)  {
 }
 
 //取出以后需要强制转换成你放进去的类型
+
 func  Test_sendreward(t *testing.T)  {
 
 	ret:=new(RspPhp)
