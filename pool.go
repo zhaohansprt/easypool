@@ -2,15 +2,14 @@ package pool
 
 import (
 	"fmt"
-	"net/http"
 	"reflect"
 	"sync"
 	"time"
 )
 
-var PoolCreateExsample = InitPool(1, 1, 10, func() interface{} {
-	return &http.Request{} //any http client you want use
-}, time.Minute)
+//var PoolCreateExsample = InitPool(1, 1, 10, func() interface{} {
+//	return &http.Request{} //any http client you want use
+//}, time.Minute)
 
 type HttpConnPool struct {
 	m         *sync.RWMutex
