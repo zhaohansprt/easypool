@@ -26,7 +26,7 @@ type HttpConn struct {
 func (p *HttpConnPool) String() string {
 	return fmt.Sprintf("free:%v, inuse:%v", p.Free, p.Inuse)
 }
-func (p *HttpConnPool) countreal() int {
+func (p *HttpConnPool) Countreal() int {
 	p.m.RLock()
 	defer p.m.RUnlock()
 	return len(p.pool)
@@ -75,7 +75,7 @@ func (p *HttpConnPool) remove(i int) {
 	p.Free--
 }
 
-func (p *HttpConnPool) get() (conn *HttpConn, err error) {
+func (p *HttpConnPool) Get() (conn *HttpConn, err error) {
 	p.m.Lock()
 	defer p.m.Unlock()
 	if p.Free > 0 {
@@ -102,7 +102,7 @@ func (p *HttpConnPool) get() (conn *HttpConn, err error) {
 
 }
 
-func (p *HttpConnPool) ret(conn *HttpConn) {
+func (p *HttpConnPool) Ret(conn *HttpConn) {
 	p.m.Lock()
 	defer p.m.Unlock()
 	conn.enable = true
@@ -110,7 +110,7 @@ func (p *HttpConnPool) ret(conn *HttpConn) {
 	p.Inuse--
 
 }
-func (c *HttpConn) ret(P *HttpConnPool) {
+func (c *HttpConn) Ret(P *HttpConnPool) {
 	P.m.Lock()
 	defer P.m.Unlock()
 	c.enable = true
