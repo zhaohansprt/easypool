@@ -15,32 +15,20 @@
 
 ```
 ReqHttpConnP=pool.InitPool(1,80,300, func() interface{} {return gorequest.New()},time.Second*10)  
-
-
- **查看池子 使用情况 以及回收间隔**
- 
-func  Test_sendrewardConcurrent(t *testing.T)  {
-
-	for i:=0; i<100;i++  {
-		go Test_sendreward(t)
-	}
-	go func() {
-
-		for{
-			//ReqHttpConnP.m.Lock()
-			fmt.Println("pool watcher ",ReqHttpConnP)   //查看池子 使用情况 以及回收间隔
-			//ReqHttpConnP.m.Unlock()
-			c:=time.NewTimer(time.Second*2)
-			<-c.C
-		}
-
-	}()
-
-
-	c:=time.NewTimer(time.Minute*2)
-	<-c.C
-}
 ```
+
+**获取**
+```
+conn,err:=ReqHttpConnP.Get()
+```
+
+**归还**
+```
+conn.Ret(ReqHttpConnP)
+```
+
+
+
 
 
 **取出以后需要强制转换成你放进去的类型**
@@ -82,5 +70,32 @@ func  Test_sendreward(t *testing.T)  {
 
 
 
+}
+```
+
+
+
+ **查看池子 使用情况 以及回收间隔**
+ 
+func  Test_sendrewardConcurrent(t *testing.T)  {
+
+	for i:=0; i<100;i++  {
+		go Test_sendreward(t)
+	}
+	go func() {
+
+		for{
+			//ReqHttpConnP.m.Lock()
+			fmt.Println("pool watcher ",ReqHttpConnP)   //查看池子 使用情况 以及回收间隔
+			//ReqHttpConnP.m.Unlock()
+			c:=time.NewTimer(time.Second*2)
+			<-c.C
+		}
+
+	}()
+
+
+	c:=time.NewTimer(time.Minute*2)
+	<-c.C
 }
 ```
