@@ -53,7 +53,7 @@ func  Test_sendreward(t *testing.T)  {
 	if conn,err:=ReqHttpConnP.Get();err!=nil{
 		panic(err)
 	}else {
-		_, _, err := conn.Agent.(*gorequest.SuperAgent).Post("http://appapi.shennong.io/v1/reward/send"). //取出以后需要强制转换成你放进去的类型
+		_, _, err := conn.Agent.(*gorequest.SuperAgent).Post("http://XXXX"). //取出以后需要强制转换成你放进去的类型
 			Send(ray).
 			EndBytes(fun)
 		conn.Ret(ReqHttpConnP)
