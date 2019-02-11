@@ -15,7 +15,7 @@
 
 ```
 ctx := context.Background()
-ReqHttpConnP,error=pool.InitPool(1,80,300,  func(context.Context) (interface{},error) {return gorequest.New(),nil},time.Second*10, ctx)  
+ReqHttpConnP=pool.InitPool(1,80,300,  func(context.Context) (interface{},error) {return gorequest.New(),nil},time.Second*10, ctx)  
 ```
 
 **获取**
