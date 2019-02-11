@@ -14,12 +14,13 @@
 **初始化  初始client数量 ， 最小闲置数量 ，最大数量 ，client 实例创建的回调函数， 回收间隔**
 
 ```
-ReqHttpConnP=pool.InitPool(1,80,300, func() interface{} {return gorequest.New()},time.Second*10)  
+ctx := context.Background()
+ReqHttpConnP,error=pool.InitPool(1,80,300,  func(context.Context) (interface{},error) {return gorequest.New(),nil},time.Second*10, ctx)  
 ```
 
 **获取**
 ```
-conn,err:=ReqHttpConnP.Get()
+conn,err:=ReqHttpConnP.Get(ctx)
 ```
 
 **归还**
@@ -56,7 +57,8 @@ func  Test_sendreward(t *testing.T)  {
 	ray:=RequestPhpAy{RequestPhp{Uid:"dfdfgdg",Sc:1223324}}
 	b,_:=json.Marshal(ray)
 	fmt.Println(string(b))
-	if conn,err:=ReqHttpConnP.Get();err!=nil{
+	ctx := context.Background()
+	if conn,err:=ReqHttpConnP.Get(ctx);err!=nil{
 		panic(err)
 	}else {
 		_, _, err := conn.Agent.(*gorequest.SuperAgent).Post("http://XXXX"). //取出以后需要强制转换成你放进去的类型

@@ -1,15 +1,17 @@
 package pool
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"sync"
 	"time"
 )
 
-//var PoolCreateExsample = InitPool(1, 1, 10, func() interface{} {
-//	return &http.Request{} //any http client you want use
-//}, time.Minute)
+//import "net/http"
+//var PoolCreateExsample = InitPool(1, 1, 10, func(context.Context) (interface{},error) {
+//	return &http.Request{},nil //any http client you want use
+//}, time.Minute,context.Background())
 
 type HttpConnPool struct {
 	m         *sync.RWMutex
@@ -22,7 +24,7 @@ type HttpConnPool struct {
 	pool    []*clientConn
 }
 
-type insFun func() interface{}
+type insFun func(context.Context) (interface{}, error)
 type clientConn struct {
 	Agent  interface{}
 	enable bool
@@ -37,21 +39,26 @@ func (p *HttpConnPool) Countreal() int {
 	return len(p.pool)
 
 }
-func InitPool(l, i, max int, fun insFun, du time.Duration) *HttpConnPool {
+func InitPool(l, i, max int, fun insFun, du time.Duration, ctx context.Context) (pool *HttpConnPool) {
 	p := new(HttpConnPool)
 	p.m = new(sync.RWMutex)
 	p.m.Lock()
 	defer p.m.Unlock()
-	v := reflect.ValueOf(fun())
+	//必须执行一次才能校验出 用户传进来的fun 的返回值是不是符合规范
+	v0, err0 := fun(ctx)
+	if err0 != nil {
+		panic(fmt.Sprintf("init pool error with initfun failed  error :", err0))
+	}
+	v := reflect.ValueOf(v0)
 	if v.Kind() != reflect.Ptr {
-		panic("the InsFun only accept the pointer of the client instance!!")
+		panic("the InsFun only accept  pointer type as the client instance!!")
 	}
 	p.insfunc = fun
 	p.recycling = du
 	//fmt.Println("pool init ok")
 	for ; l > 0; l-- {
 		//fmt.Println("inti pool loop")
-		p.pool = append(p.pool, &clientConn{p.insfunc(), true})
+		p.pool = append(p.pool, &clientConn{v0, true})
 	}
 	p.free = l
 	p.max = max
@@ -83,7 +90,7 @@ func (p *HttpConnPool) remove(i int) {
 	p.free--
 }
 
-func (p *HttpConnPool) Get() (conn *clientConn, err error) {
+func (p *HttpConnPool) Get(ctx context.Context) (conn *clientConn, err error) {
 	p.m.Lock()
 	defer p.m.Unlock()
 	if p.free > 0 {
@@ -100,7 +107,11 @@ func (p *HttpConnPool) Get() (conn *clientConn, err error) {
 	}
 
 	if p.inuse < p.max {
-		conn = &clientConn{p.insfunc(), false}
+		c, err := p.insfunc(ctx)
+		if err != nil {
+			return nil, err
+		}
+		conn = &clientConn{c, false}
 		p.pool = append(p.pool, conn)
 		p.inuse++
 		return
